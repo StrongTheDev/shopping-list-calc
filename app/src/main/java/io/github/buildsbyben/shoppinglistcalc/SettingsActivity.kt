@@ -31,7 +31,7 @@ class SettingsActivity : Activity() {
     private val bg = Color.BLACK
     private val text = Color.WHITE
     private val muted = Color.WHITE
-    private var store: ShoppingListStore? = null
+    private lateinit var store: ShoppingListStore
     private var rows: LinearLayout? = null
     private var customFormat: LinearLayout? = null
     private var symbol: EditText? = null
@@ -83,13 +83,13 @@ class SettingsActivity : Activity() {
             priceChoices!!,
             "Direct amount entry",
             "Type an amount normally, such as 12.50 or 12,50.",
-            !store!!.quickCentsEntry()
+            store.quickCentsEntry()
         )
         addRadio(
             priceChoices!!,
             "Quick cents entry",
             "Digits shift into cents as you type.",
-            store!!.quickCentsEntry()
+            store.quickCentsEntry()
         )
         rows!!.addView(priceChoices)
         section("New item focus")
@@ -98,13 +98,13 @@ class SettingsActivity : Activity() {
             flowChoices!!,
             "Name first",
             "New items start at the item name field.",
-            !store!!.quickEntry()
+            store.quickEntry()
         )
         addRadio(
             flowChoices!!,
             "Price first",
             "New items start at the price field. Next adds another item.",
-            store!!.quickEntry()
+            store.quickEntry()
         )
         rows!!.addView(flowChoices)
         section("Weight unit")
@@ -113,25 +113,25 @@ class SettingsActivity : Activity() {
             weightChoices!!,
             "Pounds (lb)",
             "Common in the United States.",
-            "lb" == store!!.weightUnit()
+            "lb" == store.weightUnit()
         )
         addRadio(
             weightChoices!!,
             "Kilograms (kg)",
             "Common in most countries.",
-            "kg" == store!!.weightUnit()
+            "kg" == store.weightUnit()
         )
         addRadio(
             weightChoices!!,
             "Ounces (oz)",
             "Useful for smaller US measurements.",
-            "oz" == store!!.weightUnit()
+            "oz" == store.weightUnit()
         )
         addRadio(
             weightChoices!!,
             "Grams (g)",
             "Useful for smaller metric measurements.",
-            "g" == store!!.weightUnit()
+            "g" == store.weightUnit()
         )
         rows!!.addView(weightChoices)
         section("About")
@@ -163,14 +163,14 @@ class SettingsActivity : Activity() {
         fields.setOrientation(LinearLayout.HORIZONTAL)
         val taxField = column()
         taxField.addView(label("Tax rate (%)", 16, text, true))
-        taxInput = input("", trimNumber(store!!.taxRate()), true)
+        taxInput = input("", trimNumber(store.taxRate()), true)
         taxField.addView(taxInput, top(5))
-        budgetFormat = store!!.currencyFormat()
+        budgetFormat = store.currencyFormat()
         val budgetField = column()
         budgetField.addView(label("Budget", 16, text, true))
         budgetInput = input(
             "",
-            if (store!!.budget() == 0.0) "" else formatBudget(store!!.budget(), budgetFormat!!),
+            if (store.budget() == 0.0) "" else formatBudget(store!!.budget(), budgetFormat!!),
             false
         )
         budgetField.addView(budgetInput, top(5))
@@ -184,7 +184,7 @@ class SettingsActivity : Activity() {
     }
 
     private fun addCurrencySettings() {
-        val current = store!!.currencyFormat()
+        val current = store.currencyFormat()
         val money = card()
         money.addView(label("Currency format", 17, text, true))
         val note = label(
@@ -277,16 +277,16 @@ class SettingsActivity : Activity() {
                 parseInt(digits!!.getText().toString(), 2)
             )
         }
-        store!!.saveCurrencyFormat(format)
-        store!!.saveQuickCentsEntry(selectedIndex(priceChoices!!) == 1)
-        store!!.saveQuickEntry(selectedIndex(flowChoices!!) == 1)
-        store!!.saveWeightUnit(
+        store.saveCurrencyFormat(format)
+        store.saveQuickCentsEntry(selectedIndex(priceChoices!!) == 1)
+        store.saveQuickEntry(selectedIndex(flowChoices!!) == 1)
+        store.saveWeightUnit(
             arrayOf<String>("lb", "kg", "oz", "g")[max(
                 0,
                 selectedIndex(weightChoices!!)
             )]
         )
-        store!!.saveSettings(
+        store.saveSettings(
             parseDouble(taxInput!!.getText().toString()),
             parseBudget(budgetInput!!.getText().toString(), budgetFormat!!)
         )
