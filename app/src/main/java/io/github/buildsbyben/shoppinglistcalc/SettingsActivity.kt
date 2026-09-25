@@ -47,6 +47,8 @@ class SettingsActivity : Activity() {
     private var weightChoices: RadioGroup? = null
     private var budgetFormat: CurrencyFormat? = null
 
+    private var rawBudgetValue: Double = 0.0
+
     public override fun onCreate(state: Bundle?) {
         super.onCreate(state)
         getWindow().setStatusBarColor(bg)
@@ -79,32 +81,35 @@ class SettingsActivity : Activity() {
         addCurrencySettings()
         section("Price entry")
         priceChoices = radios()
+        val quickCents = store.quickCentsEntry()
         addRadio(
             priceChoices!!,
             "Direct amount entry",
             "Type an amount normally, such as 12.50 or 12,50.",
-            store.quickCentsEntry()
+            !quickCents
         )
         addRadio(
             priceChoices!!,
             "Quick cents entry",
             "Digits shift into cents as you type.",
-            store.quickCentsEntry()
+            quickCents
         )
         rows!!.addView(priceChoices)
+
         section("New item focus")
         flowChoices = radios()
+        val quickEntry = store.quickEntry()
         addRadio(
             flowChoices!!,
             "Name first",
             "New items start at the item name field.",
-            store.quickEntry()
+            !quickEntry
         )
         addRadio(
             flowChoices!!,
             "Price first",
             "New items start at the price field. Next adds another item.",
-            store.quickEntry()
+            quickEntry
         )
         rows!!.addView(flowChoices)
         section("Weight unit")
@@ -161,28 +166,34 @@ class SettingsActivity : Activity() {
         val settingsCard = card()
         val fields = LinearLayout(this)
         fields.setOrientation(LinearLayout.HORIZONTAL)
+
         val taxField = column()
         taxField.addView(label("Tax rate (%)", 16, text, true))
         taxInput = input("", trimNumber(store.taxRate()), true)
         taxField.addView(taxInput, top(5))
+
         budgetFormat = store.currencyFormat()
+        rawBudgetValue = store.budget()
+
         val budgetField = column()
         budgetField.addView(label("Budget", 16, text, true))
+
         budgetInput = input(
             "",
-            if (store.budget() == 0.0) "" else formatBudget(store!!.budget(), budgetFormat!!),
+            if (rawBudgetValue == 0.0) "" else formatBudget(rawBudgetValue, budgetFormat!!),
             false
         )
         budgetField.addView(budgetInput, top(5))
+
         val taxParams = LinearLayout.LayoutParams(0, -2, 1f)
         val budgetParams = LinearLayout.LayoutParams(0, -2, 1f)
         budgetParams.leftMargin = dp(10)
+
         fields.addView(taxField, taxParams)
         fields.addView(budgetField, budgetParams)
         settingsCard.addView(fields)
         rows!!.addView(settingsCard)
     }
-
     private fun addCurrencySettings() {
         val current = store.currencyFormat()
         val money = card()
@@ -314,10 +325,10 @@ class SettingsActivity : Activity() {
     }
 
     private fun refreshBudgetFormat(format: CurrencyFormat) {
-        val amount = parseBudget(budgetInput!!.getText().toString(), budgetFormat!!)
         budgetFormat = format
-        if (amount != 0.0 || !budgetInput!!.getText().toString().trim { it <= ' ' }
-                .isEmpty()) budgetInput!!.setText(formatBudget(amount, format))
+        if (rawBudgetValue != 0.0 || !budgetInput!!.text.toString().trim().isEmpty()) {
+            budgetInput!!.setText(formatBudget(rawBudgetValue, format))
+        }
     }
 
     private fun formatBudget(amount: Double, format: CurrencyFormat): String {
@@ -339,12 +350,18 @@ class SettingsActivity : Activity() {
     }
 
     private fun parseBudget(value: String?, format: CurrencyFormat): Double {
-        var raw = if (value == null) "" else value.trim { it <= ' ' }
-        if (!format.symbol.isEmpty()) raw = raw.replace(format.symbol, "")
-        if (format.groupingSeparator != '\u0000') raw =
-            raw.replace(format.groupingSeparator.toString(), "")
-        if (format.decimalSeparator != '.') raw = raw.replace(format.decimalSeparator, '.')
-        return parseDouble(raw.trim { it <= ' ' })
+        if (value.isNullOrBlank()) return 0.0
+        var raw = value.trim()
+        if (format.symbol.isNotEmpty()) raw = raw.replace(format.symbol, "")
+        if (format.groupingSeparator != '\u0000') {
+            raw = raw.replace(format.groupingSeparator.toString(), "")
+        }
+        if (format.decimalSeparator != '.') {
+            raw = raw.replace(format.decimalSeparator, '.')
+        }
+        // Remove any remaining non-numeric characters except standard decimal point
+        raw = raw.replace(Regex("[^0-9.]"), "")
+        return parseDouble(raw)
     }
 
     private fun isPreset(v: CurrencyFormat): Boolean {
