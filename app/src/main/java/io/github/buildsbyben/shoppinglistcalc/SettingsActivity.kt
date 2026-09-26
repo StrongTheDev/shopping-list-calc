@@ -72,7 +72,7 @@ class SettingsActivity : Activity() {
         val scroll = ScrollView(this)
         scroll.setBackgroundColor(bg)
         rows = column()
-        rows!!.setPadding(dp(16), dp(8), dp(16), dp(28))
+        rows?.setPadding(dp(16), dp(8), dp(16), dp(28))
         scroll.addView(rows)
         screen.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
         section("Budget and tax")
@@ -82,63 +82,75 @@ class SettingsActivity : Activity() {
         section("Price entry")
         priceChoices = radios()
         val quickCents = store.quickCentsEntry()
+
+        priceChoices?.let { safeChoices ->
         addRadio(
-            priceChoices!!,
+            safeChoices,
             "Direct amount entry",
             "Type an amount normally, such as 12.50 or 12,50.",
             !quickCents
         )
         addRadio(
-            priceChoices!!,
+            safeChoices,
             "Quick cents entry",
             "Digits shift into cents as you type.",
             quickCents
         )
-        rows!!.addView(priceChoices)
+        rows?.addView(priceChoices)
+        }
 
         section("New item focus")
         flowChoices = radios()
         val quickEntry = store.quickEntry()
-        addRadio(
-            flowChoices!!,
-            "Name first",
-            "New items start at the item name field.",
-            !quickEntry
-        )
-        addRadio(
-            flowChoices!!,
-            "Price first",
-            "New items start at the price field. Next adds another item.",
-            quickEntry
-        )
-        rows!!.addView(flowChoices)
+
+        flowChoices?.let { safeChoices ->
+            addRadio(
+                group = safeChoices,
+                title = "Name first",
+                summary = "New items start at the item name field.",
+                checked = !quickEntry
+            )
+
+            addRadio(
+                safeChoices,
+                "Price first",
+                "New items start at the price field. Next adds another item.",
+                quickEntry
+            )
+            rows?.addView(flowChoices)
+        }
         section("Weight unit")
         weightChoices = radios()
+
+        weightChoices?.let{ safeChoice ->
         addRadio(
-            weightChoices!!,
+            safeChoice,
             "Pounds (lb)",
             "Common in the United States.",
             "lb" == store.weightUnit()
         )
         addRadio(
-            weightChoices!!,
+            safeChoice,
             "Kilograms (kg)",
             "Common in most countries.",
             "kg" == store.weightUnit()
         )
         addRadio(
-            weightChoices!!,
+            safeChoice,
             "Ounces (oz)",
             "Useful for smaller US measurements.",
             "oz" == store.weightUnit()
         )
         addRadio(
-            weightChoices!!,
+            safeChoice,
             "Grams (g)",
             "Useful for smaller metric measurements.",
             "g" == store.weightUnit()
         )
-        rows!!.addView(weightChoices)
+        rows?.addView(weightChoices)
+        }
+
+
         section("About")
         val about = card()
         about.addView(label("Shopping List Calculator", 17, text, true))
@@ -154,7 +166,7 @@ class SettingsActivity : Activity() {
         val fdroid = button("Get updates on F-Droid")
         fdroid.setOnClickListener(View.OnClickListener { v: View? -> openUrl("https://f-droid.org/packages/io.github.buildsbyben.shoppinglistcalc/") })
         about.addView(fdroid, top(8))
-        rows!!.addView(about)
+        rows?.addView(about)
         screen.setOnApplyWindowInsetsListener(View.OnApplyWindowInsetsListener { view: View?, insets: WindowInsets? ->
             header.setPadding(dp(16), dp(16) + insets!!.getSystemWindowInsetTop(), dp(16), dp(8))
             insets
@@ -197,50 +209,73 @@ class SettingsActivity : Activity() {
     private fun addCurrencySettings() {
         val current = store.currencyFormat()
         val money = card()
-        money.addView(label("Currency format", 17, text, true))
+        money?.addView(label("Currency format", 17, text, true))
         val note = label(
             "Choose manually. This app does not read your device region or location.",
             13,
             muted,
             false
         )
-        note.setPadding(0, dp(3), 0, dp(8))
-        money.addView(note)
+        note?.setPadding(0, dp(3), 0, dp(8))
+        money?.addView(note)
+
         currencyChoices = radios()
-        addRadio(
-            currencyChoices!!,
-            "US Dollar",
-            "$1,234.56",
-            isFormat(current, "$", false, '.', ',', 2)
-        )
-        addRadio(currencyChoices!!, "Euro", "€1.234,56", isFormat(current, "€", false, ',', '.', 2))
-        addRadio(
-            currencyChoices!!,
-            "British Pound",
-            "£1,234.56",
-            isFormat(current, "£", false, '.', ',', 2)
-        )
-        addRadio(
-            currencyChoices!!,
-            "Japanese Yen",
-            "¥1,235",
-            isFormat(current, "¥", false, '.', ',', 0)
-        )
-        val custom = !isPreset(current)
-        addRadio(
-            currencyChoices!!,
-            "Custom format",
-            "Choose your own symbol and separators.",
-            custom
-        )
-        money.addView(currencyChoices)
-        addCustomFormat(current, money, custom)
-        currencyChoices!!.setOnCheckedChangeListener(RadioGroup.OnCheckedChangeListener { g: RadioGroup?, id: Int ->
-            val selected = selectedIndex(currencyChoices!!)
-            customFormat!!.setVisibility(if (selected == 4) View.VISIBLE else View.GONE)
-            refreshBudgetFormat(if (selected < 4) presetFormat(selected) else customFormatPreview())
-        })
-        rows!!.addView(money)
+        currencyChoices?.let { safeChoices ->
+            addRadio(
+                safeChoices,
+                "US Dollar",
+                "$1,234.56",
+                isFormat(current, "$", false, '.', ',', 2)
+            )
+            addRadio(
+                safeChoices,
+                "Euro",
+                "€1.234,56",
+                isFormat(current, "€", false, ',', '.', 2)
+            )
+            addRadio(
+                safeChoices,
+                "British Pound",
+                "£1,234.56",
+                isFormat(current, "£", false, '.', ',', 2)
+            )
+            addRadio(
+                safeChoices,
+                "Japanese Yen",
+                "¥1,235",
+                isFormat(current, "¥", false, '.', ',', 0)
+            )
+            val custom = !isPreset(current)
+            addRadio(
+                safeChoices,
+                "Custom format",
+                "Choose your own symbol and separators.",
+                custom
+            )
+
+            money?.addView(safeChoices)
+            addCustomFormat(current, money, custom)
+
+            safeChoices.setOnCheckedChangeListener { group, _ ->
+                val selected = selectedIndex(group)
+                customFormat?.setVisibility(if (selected == 4) View.VISIBLE else View.GONE)
+                refreshBudgetFormat(
+                    if (selected < 4) {
+                        presetFormat(selected)
+                    } else {
+                        CurrencyFormat(
+                            symbol?.text?.toString().orEmpty(),
+                            symbolPosition?.checkedRadioButtonId == 1,
+                            decimal?.text?.firstOrNull() ?: '.',
+                            grouping?.text?.firstOrNull() ?: ',',
+                            digits?.text?.toString()?.toIntOrNull() ?: 2
+                        )
+                    }
+                )
+            }
+
+            rows?.addView(money)
+        }
     }
 
     private fun addCustomFormat(value: CurrencyFormat, parent: LinearLayout, visible: Boolean) {
@@ -269,37 +304,54 @@ class SettingsActivity : Activity() {
     }
 
     private fun saveAll(): Boolean {
-        val currency = selectedIndex(currencyChoices!!)
+        val currency = currencyChoices?.let { selectedIndex(it) } ?: 0
         val format: CurrencyFormat?
-        if (currency < 4) format = presetFormat(currency)
-        else {
-            val d = separator(decimal!!.getText().toString(), '.')
-            val g = if (grouping!!.getText().toString().trim { it <= ' ' }
-                    .isEmpty()) '\u0000' else separator(grouping!!.getText().toString(), ',')
+
+        if (currency < 4) {
+            format = presetFormat(currency)
+        } else {
+            val decimalView = decimal
+            val groupingView = grouping
+            val symbolView = symbol
+            val symbolPosView = symbolPosition
+            val digitsView = digits
+
+            val d = separator(decimalView?.text?.toString().orEmpty(), '.')
+            val gString = groupingView?.text?.toString()?.trim().orEmpty()
+            val g = if (gString.isEmpty()) '\u0000' else separator(gString, ',')
+
             if (d == g && g != '\u0000') {
-                grouping!!.setError("Use a different separator than decimal.")
+                groupingView?.error = "Use a different separator than decimal."
                 return false
             }
+
             format = CurrencyFormat(
-                symbol!!.getText().toString().trim { it <= ' ' },
-                selectedIndex(symbolPosition!!) == 1,
+                symbolView?.text?.toString()?.trim().orEmpty(),
+                symbolPosView?.let { selectedIndex(it) == 1 } ?: false,
                 d,
                 g,
-                parseInt(digits!!.getText().toString(), 2)
+                parseInt(digitsView?.text?.toString().orEmpty(), 2)
             )
         }
+
         store.saveCurrencyFormat(format)
-        store.saveQuickCentsEntry(selectedIndex(priceChoices!!) == 1)
-        store.saveQuickEntry(selectedIndex(flowChoices!!) == 1)
-        store.saveWeightUnit(
-            arrayOf<String>("lb", "kg", "oz", "g")[max(
-                0,
-                selectedIndex(weightChoices!!)
-            )]
+
+        store.saveQuickCentsEntry(
+            priceChoices?.let { selectedIndex(it) == 1 } ?: false
         )
+
+        store.saveQuickEntry(
+            flowChoices?.let { selectedIndex(it) == 1 } ?: false
+        )
+
+        val weightUnits = arrayOf("lb", "kg", "oz", "g")
+        val weightIndex = weightChoices?.let { max(0, selectedIndex(it)) } ?: 0
+        store.saveWeightUnit(weightUnits.getOrNull(weightIndex) ?: "lb")
+
+        val budgetFmt = budgetFormat ?: presetFormat(0)
         store.saveSettings(
-            parseDouble(taxInput!!.getText().toString()),
-            parseBudget(budgetInput!!.getText().toString(), budgetFormat!!)
+            parseDouble(taxInput?.text?.toString().orEmpty()),
+            parseBudget(budgetInput?.text?.toString().orEmpty(), budgetFmt)
         )
         return true
     }
