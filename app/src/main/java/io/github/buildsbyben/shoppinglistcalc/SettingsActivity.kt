@@ -61,42 +61,48 @@ class SettingsActivity : Activity() {
         val screen = column()
         screen.setBackgroundColor(bg)
         val header = LinearLayout(this)
-        header.setGravity(Gravity.CENTER_VERTICAL)
+        header.gravity = Gravity.CENTER_VERTICAL
         header.setPadding(dp(16), dp(16), dp(16), dp(8))
+
         val title = label("Settings", 29, text, true)
         header.addView(title, LinearLayout.LayoutParams(0, -2, 1f))
+
         val save = primaryButton("Save")
-        save.setOnClickListener(View.OnClickListener { v: View? -> if (saveAll()) finish() })
+        save.setOnClickListener { if (saveAll()) finish() }
         header.addView(save, LinearLayout.LayoutParams(-2, -2))
         screen.addView(header)
+
         val scroll = ScrollView(this)
         scroll.setBackgroundColor(bg)
         rows = column()
         rows?.setPadding(dp(16), dp(8), dp(16), dp(28))
         scroll.addView(rows)
         screen.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
+
         section("Budget and tax")
         addBudgetAndTaxSettings()
+
         section("Money")
         addCurrencySettings()
+
         section("Price entry")
         priceChoices = radios()
         val quickCents = store.quickCentsEntry()
 
         priceChoices?.let { safeChoices ->
-        addRadio(
-            safeChoices,
-            "Direct amount entry",
-            "Type an amount normally, such as 12.50 or 12,50.",
-            !quickCents
-        )
-        addRadio(
-            safeChoices,
-            "Quick cents entry",
-            "Digits shift into cents as you type.",
-            quickCents
-        )
-        rows?.addView(priceChoices)
+            addRadio(
+                safeChoices,
+                "Direct amount entry",
+                "Type an amount normally, such as 12.50 or 12,50.",
+                !quickCents
+            )
+            addRadio(
+                safeChoices,
+                "Quick cents entry",
+                "Digits shift into cents as you type.",
+                quickCents
+            )
+            rows?.addView(priceChoices)
         }
 
         section("New item focus")
@@ -110,7 +116,6 @@ class SettingsActivity : Activity() {
                 summary = "New items start at the item name field.",
                 checked = !quickEntry
             )
-
             addRadio(
                 safeChoices,
                 "Price first",
@@ -119,37 +124,37 @@ class SettingsActivity : Activity() {
             )
             rows?.addView(flowChoices)
         }
+
         section("Weight unit")
         weightChoices = radios()
 
-        weightChoices?.let{ safeChoice ->
-        addRadio(
-            safeChoice,
-            "Pounds (lb)",
-            "Common in the United States.",
-            "lb" == store.weightUnit()
-        )
-        addRadio(
-            safeChoice,
-            "Kilograms (kg)",
-            "Common in most countries.",
-            "kg" == store.weightUnit()
-        )
-        addRadio(
-            safeChoice,
-            "Ounces (oz)",
-            "Useful for smaller US measurements.",
-            "oz" == store.weightUnit()
-        )
-        addRadio(
-            safeChoice,
-            "Grams (g)",
-            "Useful for smaller metric measurements.",
-            "g" == store.weightUnit()
-        )
-        rows?.addView(weightChoices)
+        weightChoices?.let { safeChoice ->
+            addRadio(
+                safeChoice,
+                "Pounds (lb)",
+                "Common in the United States.",
+                "lb" == store.weightUnit()
+            )
+            addRadio(
+                safeChoice,
+                "Kilograms (kg)",
+                "Common in most countries.",
+                "kg" == store.weightUnit()
+            )
+            addRadio(
+                safeChoice,
+                "Ounces (oz)",
+                "Useful for smaller US measurements.",
+                "oz" == store.weightUnit()
+            )
+            addRadio(
+                safeChoice,
+                "Grams (g)",
+                "Useful for smaller metric measurements.",
+                "g" == store.weightUnit()
+            )
+            rows?.addView(weightChoices)
         }
-
 
         section("About")
         val about = card()
@@ -157,44 +162,48 @@ class SettingsActivity : Activity() {
         val version = label("Version " + appVersion(), 13, muted, false)
         version.setPadding(0, dp(3), 0, dp(9))
         about.addView(version)
+
         val github = button("GitHub repository")
-        github.setOnClickListener(View.OnClickListener { v: View? -> openUrl("https://github.com/buildsbyben/shopping-list-calc") })
+        github.setOnClickListener { openUrl("https://github.com/buildsbyben/shopping-list-calc") }
         about.addView(github)
+
         val issues = button("Report an issue")
-        issues.setOnClickListener(View.OnClickListener { v: View? -> openUrl("https://github.com/buildsbyben/shopping-list-calc/issues") })
+        issues.setOnClickListener { openUrl("https://github.com/buildsbyben/shopping-list-calc/issues") }
         about.addView(issues, top(8))
+
         val fdroid = button("Get updates on F-Droid")
-        fdroid.setOnClickListener(View.OnClickListener { v: View? -> openUrl("https://f-droid.org/packages/io.github.buildsbyben.shoppinglistcalc/") })
+        fdroid.setOnClickListener { openUrl("https://f-droid.org/packages/io.github.buildsbyben.shoppinglistcalc/") }
         about.addView(fdroid, top(8))
         rows?.addView(about)
-        screen.setOnApplyWindowInsetsListener(View.OnApplyWindowInsetsListener { view: View?, insets: WindowInsets? ->
-            header.setPadding(dp(16), dp(16) + insets!!.getSystemWindowInsetTop(), dp(16), dp(8))
+
+        screen.setOnApplyWindowInsetsListener { _, insets ->
+            val topInset = insets?.systemWindowInsetTop ?: 0
+            header.setPadding(dp(16), dp(16) + topInset, dp(16), dp(8))
             insets
-        })
+        }
+
         setContentView(screen)
     }
 
     private fun addBudgetAndTaxSettings() {
         val settingsCard = card()
         val fields = LinearLayout(this)
-        fields.setOrientation(LinearLayout.HORIZONTAL)
+        fields.orientation = LinearLayout.HORIZONTAL
 
         val taxField = column()
         taxField.addView(label("Tax rate (%)", 16, text, true))
         taxInput = input("", trimNumber(store.taxRate()), true)
         taxField.addView(taxInput, top(5))
 
-        budgetFormat = store.currencyFormat()
+        val format = store.currencyFormat()
+        budgetFormat = format
         rawBudgetValue = store.budget()
 
         val budgetField = column()
         budgetField.addView(label("Budget", 16, text, true))
 
-        budgetInput = input(
-            "",
-            if (rawBudgetValue == 0.0) "" else formatBudget(rawBudgetValue, budgetFormat!!),
-            false
-        )
+        val budgetText = if (rawBudgetValue == 0.0) "" else formatBudget(rawBudgetValue, format)
+        budgetInput = input("", budgetText, false)
         budgetField.addView(budgetInput, top(5))
 
         val taxParams = LinearLayout.LayoutParams(0, -2, 1f)
@@ -204,20 +213,56 @@ class SettingsActivity : Activity() {
         fields.addView(taxField, taxParams)
         fields.addView(budgetField, budgetParams)
         settingsCard.addView(fields)
-        rows!!.addView(settingsCard)
+
+        rows?.addView(settingsCard)
     }
+
+    private fun addCustomFormat(value: CurrencyFormat, parent: LinearLayout, visible: Boolean) {
+        val container = column().apply {
+            setPadding(0, dp(8), 0, 0)
+            visibility = if (visible) View.VISIBLE else View.GONE
+        }
+        customFormat = container
+
+        container.addView(label("Custom format", 16, text, true))
+
+        symbol = input("", value.symbol, false)
+        decimal = input("", value.decimalSeparator.toString(), false)
+        grouping = input(
+            "",
+            if (value.groupingSeparator == '\u0000') "" else value.groupingSeparator.toString(),
+            false
+        )
+        digits = input("", value.fractionDigits.toString(), true)
+
+        container.addView(inputRow("Currency symbol", symbol, 6))
+        container.addView(inputRow("Decimal separator (. or ,)", decimal, 8))
+        container.addView(inputRow("Thousands separator (, . space, or blank)", grouping, 8))
+        container.addView(inputRow("Decimal places (0–3)", digits, 8))
+        container.addView(label("Symbol placement", 14, text, true), top(10))
+
+        val posGroup = radios()
+        symbolPosition = posGroup
+        addRadio(posGroup, "Before amount", "$1,234.56", !value.symbolAfter)
+        addRadio(posGroup, "After amount", "1.234,56 $", value.symbolAfter)
+        container.addView(posGroup)
+
+        parent.addView(container)
+    }
+
+
     private fun addCurrencySettings() {
         val current = store.currencyFormat()
         val money = card()
-        money?.addView(label("Currency format", 17, text, true))
+        money.addView(label("Currency format", 17, text, true))
         val note = label(
             "Choose manually. This app does not read your device region or location.",
             13,
             muted,
             false
         )
-        note?.setPadding(0, dp(3), 0, dp(8))
-        money?.addView(note)
+        note.setPadding(0, dp(3), 0, dp(8))
+        money.addView(note)
 
         currencyChoices = radios()
         currencyChoices?.let { safeChoices ->
@@ -253,23 +298,17 @@ class SettingsActivity : Activity() {
                 custom
             )
 
-            money?.addView(safeChoices)
+            money.addView(safeChoices)
             addCustomFormat(current, money, custom)
 
             safeChoices.setOnCheckedChangeListener { group, _ ->
                 val selected = selectedIndex(group)
-                customFormat?.setVisibility(if (selected == 4) View.VISIBLE else View.GONE)
+                customFormat?.visibility = if (selected == 4) View.VISIBLE else View.GONE
                 refreshBudgetFormat(
                     if (selected < 4) {
                         presetFormat(selected)
                     } else {
-                        CurrencyFormat(
-                            symbol?.text?.toString().orEmpty(),
-                            symbolPosition?.checkedRadioButtonId == 1,
-                            decimal?.text?.firstOrNull() ?: '.',
-                            grouping?.text?.firstOrNull() ?: ',',
-                            digits?.text?.toString()?.toIntOrNull() ?: 2
-                        )
+                        customFormatPreview()
                     }
                 )
             }
@@ -278,60 +317,19 @@ class SettingsActivity : Activity() {
         }
     }
 
-    private fun addCustomFormat(value: CurrencyFormat, parent: LinearLayout, visible: Boolean) {
-        customFormat = column()
-        customFormat!!.setPadding(0, dp(8), 0, 0)
-        customFormat!!.setVisibility(if (visible) View.VISIBLE else View.GONE)
-        customFormat!!.addView(label("Custom format", 16, text, true))
-        symbol = input("", value.symbol, false)
-        decimal = input("", value.decimalSeparator.toString(), false)
-        grouping = input(
-            "",
-            if (value.groupingSeparator == '\u0000') "" else value.groupingSeparator.toString(),
-            false
-        )
-        digits = input("", value.fractionDigits.toString(), true)
-        customFormat!!.addView(inputRow("Currency symbol", symbol, 6))
-        customFormat!!.addView(inputRow("Decimal separator (. or ,)", decimal, 8))
-        customFormat!!.addView(inputRow("Thousands separator (, . space, or blank)", grouping, 8))
-        customFormat!!.addView(inputRow("Decimal places (0–3)", digits, 8))
-        customFormat!!.addView(label("Symbol placement", 14, text, true), top(10))
-        symbolPosition = radios()
-        addRadio(symbolPosition!!, "Before amount", "$1,234.56", !value.symbolAfter)
-        addRadio(symbolPosition!!, "After amount", "1.234,56 €", value.symbolAfter)
-        customFormat!!.addView(symbolPosition)
-        parent.addView(customFormat)
-    }
-
     private fun saveAll(): Boolean {
         val currency = currencyChoices?.let { selectedIndex(it) } ?: 0
-        val format: CurrencyFormat?
+        val format: CurrencyFormat
 
         if (currency < 4) {
             format = presetFormat(currency)
         } else {
-            val decimalView = decimal
-            val groupingView = grouping
-            val symbolView = symbol
-            val symbolPosView = symbolPosition
-            val digitsView = digits
-
-            val d = separator(decimalView?.text?.toString().orEmpty(), '.')
-            val gString = groupingView?.text?.toString()?.trim().orEmpty()
-            val g = if (gString.isEmpty()) '\u0000' else separator(gString, ',')
-
-            if (d == g && g != '\u0000') {
-                groupingView?.error = "Use a different separator than decimal."
+            val preview = customFormatPreview()
+            if (preview.decimalSeparator == preview.groupingSeparator && preview.groupingSeparator != '\u0000') {
+                grouping?.error = "Use a different separator than decimal."
                 return false
             }
-
-            format = CurrencyFormat(
-                symbolView?.text?.toString()?.trim().orEmpty(),
-                symbolPosView?.let { selectedIndex(it) == 1 } ?: false,
-                d,
-                g,
-                parseInt(digitsView?.text?.toString().orEmpty(), 2)
-            )
+            format = preview
         }
 
         store.saveCurrencyFormat(format)
@@ -364,22 +362,31 @@ class SettingsActivity : Activity() {
     }
 
     private fun customFormatPreview(): CurrencyFormat {
-        val d = separator(decimal!!.getText().toString(), '.')
-        val g = if (grouping!!.getText().toString().trim { it <= ' ' }
-                .isEmpty()) '\u0000' else separator(grouping!!.getText().toString(), ',')
-        return CurrencyFormat(
-            symbol!!.getText().toString().trim { it <= ' ' },
-            selectedIndex(symbolPosition!!) == 1,
-            d,
-            g,
-            parseInt(digits!!.getText().toString(), 2)
-        )
+        val sym = symbol?.text?.toString()?.trim().orEmpty()
+        val isAfter = symbolPosition?.let { selectedIndex(it) == 1 } ?: false
+        val dec = decimal?.text?.toString()?.trim()?.firstOrNull() ?: '.'
+
+        val groupText = grouping?.text?.toString()?.trim().orEmpty()
+        val group = if (groupText.isEmpty()) '\u0000' else groupText.first()
+
+        val fracDigits = parseInt(digits?.text?.toString().orEmpty(), 2)
+
+        return CurrencyFormat(sym, isAfter, dec, group, fracDigits)
     }
 
     private fun refreshBudgetFormat(format: CurrencyFormat) {
+        val currentText = budgetInput?.text?.toString().orEmpty()
+        val oldFormat = budgetFormat ?: presetFormat(0)
+
+
+        if (currentText.isNotBlank()) {
+            rawBudgetValue = parseBudget(currentText, oldFormat)
+        }
+
         budgetFormat = format
-        if (rawBudgetValue != 0.0 || !budgetInput!!.text.toString().trim().isEmpty()) {
-            budgetInput!!.setText(formatBudget(rawBudgetValue, format))
+
+        if (rawBudgetValue != 0.0 || currentText.isNotBlank()) {
+            budgetInput?.setText(formatBudget(rawBudgetValue, format))
         }
     }
 
@@ -390,28 +397,35 @@ class SettingsActivity : Activity() {
         val fraction = if (point < 0) "" else raw.substring(point + 1)
         if (format.groupingSeparator != '\u0000') {
             val grouped = StringBuilder()
-            for (i in 0..<whole.length) {
+            for (i in 0 until whole.length) {
                 if (i > 0 && (whole.length - i) % 3 == 0) grouped.append(format.groupingSeparator)
-                grouped.append(whole.get(i))
+                grouped.append(whole[i])
             }
             whole = grouped.toString()
         }
-        val number =
-            if (format.fractionDigits == 0) whole else whole + format.decimalSeparator + fraction
+        val number = if (format.fractionDigits == 0) whole else whole + format.decimalSeparator + fraction
         return if (format.symbolAfter) number + format.symbol else format.symbol + number
     }
 
     private fun parseBudget(value: String?, format: CurrencyFormat): Double {
         if (value.isNullOrBlank()) return 0.0
         var raw = value.trim()
-        if (format.symbol.isNotEmpty()) raw = raw.replace(format.symbol, "")
-        if (format.groupingSeparator != '\u0000') {
-            raw = raw.replace(format.groupingSeparator.toString(), "")
+
+        val sym = format.symbol.orEmpty()
+        if (sym.isNotEmpty()) {
+            raw = raw.replace(sym, "")
         }
-        if (format.decimalSeparator != '.') {
-            raw = raw.replace(format.decimalSeparator, '.')
+
+        val groupSep = format.groupingSeparator
+        if (groupSep != '\u0000') {
+            raw = raw.replace(groupSep.toString(), "")
         }
-        // Remove any remaining non-numeric characters except standard decimal point
+
+        val decSep = format.decimalSeparator
+        if (decSep != '.') {
+            raw = raw.replace(decSep, '.')
+        }
+
         raw = raw.replace(Regex("[^0-9.]"), "")
         return parseDouble(raw)
     }
@@ -471,7 +485,7 @@ class SettingsActivity : Activity() {
     private fun section(title: String?) {
         val v = label(title, 16, text, true)
         v.setPadding(0, dp(24), 0, dp(7))
-        rows!!.addView(v)
+        rows?.addView(v)
     }
 
     private fun card(): LinearLayout {
@@ -511,16 +525,20 @@ class SettingsActivity : Activity() {
     }
 
     private fun inputRow(title: String?, field: EditText?, marginTop: Int): LinearLayout {
-        val row = LinearLayout(this)
-        row.setOrientation(LinearLayout.HORIZONTAL)
-        row.setGravity(Gravity.CENTER_VERTICAL)
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
         val name = label(title, 14, text, true)
         name.setPadding(0, 0, dp(12), 0)
         row.addView(name, LinearLayout.LayoutParams(0, -2, 1f))
-        row.addView(field, LinearLayout.LayoutParams(dp(116), -2))
-        val params = LinearLayout.LayoutParams(-1, -2)
-        params.topMargin = dp(marginTop)
-        row.setLayoutParams(params)
+        field?.let {
+            row.addView(it, LinearLayout.LayoutParams(dp(116), -2))
+        }
+        val params = LinearLayout.LayoutParams(-1, -2).apply {
+            topMargin = dp(marginTop)
+        }
+        row.layoutParams = params
         return row
     }
 
@@ -572,27 +590,15 @@ class SettingsActivity : Activity() {
         return Math.round(value * getResources().getDisplayMetrics().density)
     }
 
-    private fun separator(value: String?, fallback: Char): Char {
-        val t = if (value == null) "" else value.trim { it <= ' ' }
-        return if (t.isEmpty()) fallback else t.get(0)
+    private fun parseInt(value: String?, fallback: Int): Int {
+        val parsed = value?.trim()?.toIntOrNull() ?: return fallback
+        return max(0, min(3, parsed))
     }
 
-    private fun parseInt(value: String, fallback: Int): Int {
-        try {
-            return max(0, min(3, value.trim { it <= ' ' }.toInt()))
-        } catch (e: Exception) {
-            return fallback
-        }
+    private fun parseDouble(value: String?): Double {
+        return value?.trim()?.toDoubleOrNull() ?: 0.0
     }
 
-    private fun parseDouble(value: String): Double {
-        try {
-            return if (value.trim { it <= ' ' }.isEmpty()) 0.0 else value.trim { it <= ' ' }
-                .toDouble()
-        } catch (e: Exception) {
-            return 0.0
-        }
-    }
 
     private fun trimNumber(value: Double): String {
         return if (value == round(value)) value.toLong().toString() else value.toString()
