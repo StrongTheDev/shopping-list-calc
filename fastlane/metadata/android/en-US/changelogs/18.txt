@@ -1,0 +1,4 @@
+Improved budget and currency settings, including preserving edits when switching options.
+Migrated Settings to Kotlin while keeping the familiar interface and offline behavior.
+Optimized release code and resources to keep the app small.
+Thanks to jubayer10010 for the Kotlin migration and revisions!
