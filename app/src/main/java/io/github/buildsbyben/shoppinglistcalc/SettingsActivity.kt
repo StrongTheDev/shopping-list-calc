@@ -14,7 +14,6 @@ import android.text.SpannableString
 import android.text.style.RelativeSizeSpan
 import android.view.Gravity
 import android.view.View
-import android.view.WindowInsets
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
@@ -32,22 +31,20 @@ class SettingsActivity : Activity() {
     private val text = Color.WHITE
     private val muted = Color.WHITE
     private lateinit var store: ShoppingListStore
-    private var rows: LinearLayout? = null
-    private var customFormat: LinearLayout? = null
-    private var symbol: EditText? = null
-    private var decimal: EditText? = null
-    private var grouping: EditText? = null
-    private var digits: EditText? = null
-    private var taxInput: EditText? = null
-    private var budgetInput: EditText? = null
-    private var symbolPosition: RadioGroup? = null
-    private var currencyChoices: RadioGroup? = null
-    private var priceChoices: RadioGroup? = null
-    private var flowChoices: RadioGroup? = null
-    private var weightChoices: RadioGroup? = null
-    private var budgetFormat: CurrencyFormat? = null
-
-    private var rawBudgetValue: Double = 0.0
+    private lateinit var rows: LinearLayout
+    private lateinit var customFormat: LinearLayout
+    private lateinit var symbol: EditText
+    private lateinit var decimal: EditText
+    private lateinit var grouping: EditText
+    private lateinit var digits: EditText
+    private lateinit var taxInput: EditText
+    private lateinit var budgetInput: EditText
+    private lateinit var symbolPosition: RadioGroup
+    private lateinit var currencyChoices: RadioGroup
+    private lateinit var priceChoices: RadioGroup
+    private lateinit var flowChoices: RadioGroup
+    private lateinit var weightChoices: RadioGroup
+    private lateinit var budgetFormat: CurrencyFormat
 
     public override fun onCreate(state: Bundle?) {
         super.onCreate(state)
@@ -75,7 +72,7 @@ class SettingsActivity : Activity() {
         val scroll = ScrollView(this)
         scroll.setBackgroundColor(bg)
         rows = column()
-        rows?.setPadding(dp(16), dp(8), dp(16), dp(28))
+        rows.setPadding(dp(16), dp(8), dp(16), dp(28))
         scroll.addView(rows)
         screen.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
 
@@ -89,7 +86,7 @@ class SettingsActivity : Activity() {
         priceChoices = radios()
         val quickCents = store.quickCentsEntry()
 
-        priceChoices?.let { safeChoices ->
+        priceChoices.let { safeChoices ->
             addRadio(
                 safeChoices,
                 "Direct amount entry",
@@ -102,14 +99,14 @@ class SettingsActivity : Activity() {
                 "Digits shift into cents as you type.",
                 quickCents
             )
-            rows?.addView(priceChoices)
+            rows.addView(priceChoices)
         }
 
         section("New item focus")
         flowChoices = radios()
         val quickEntry = store.quickEntry()
 
-        flowChoices?.let { safeChoices ->
+        flowChoices.let { safeChoices ->
             addRadio(
                 group = safeChoices,
                 title = "Name first",
@@ -122,13 +119,13 @@ class SettingsActivity : Activity() {
                 "New items start at the price field. Next adds another item.",
                 quickEntry
             )
-            rows?.addView(flowChoices)
+            rows.addView(flowChoices)
         }
 
         section("Weight unit")
         weightChoices = radios()
 
-        weightChoices?.let { safeChoice ->
+        weightChoices.let { safeChoice ->
             addRadio(
                 safeChoice,
                 "Pounds (lb)",
@@ -153,7 +150,7 @@ class SettingsActivity : Activity() {
                 "Useful for smaller metric measurements.",
                 "g" == store.weightUnit()
             )
-            rows?.addView(weightChoices)
+            rows.addView(weightChoices)
         }
 
         section("About")
@@ -174,10 +171,10 @@ class SettingsActivity : Activity() {
         val fdroid = button("Get updates on F-Droid")
         fdroid.setOnClickListener { openUrl("https://f-droid.org/packages/io.github.buildsbyben.shoppinglistcalc/") }
         about.addView(fdroid, top(8))
-        rows?.addView(about)
+        rows.addView(about)
 
         screen.setOnApplyWindowInsetsListener { _, insets ->
-            val topInset = insets?.systemWindowInsetTop ?: 0
+            val topInset = insets.systemWindowInsetTop
             header.setPadding(dp(16), dp(16) + topInset, dp(16), dp(8))
             insets
         }
@@ -197,12 +194,12 @@ class SettingsActivity : Activity() {
 
         val format = store.currencyFormat()
         budgetFormat = format
-        rawBudgetValue = store.budget()
+        val budget = store.budget()
 
         val budgetField = column()
         budgetField.addView(label("Budget", 16, text, true))
 
-        val budgetText = if (rawBudgetValue == 0.0) "" else formatBudget(rawBudgetValue, format)
+        val budgetText = if (budget == 0.0) "" else formatBudget(budget, format)
         budgetInput = input("", budgetText, false)
         budgetField.addView(budgetInput, top(5))
 
@@ -214,7 +211,7 @@ class SettingsActivity : Activity() {
         fields.addView(budgetField, budgetParams)
         settingsCard.addView(fields)
 
-        rows?.addView(settingsCard)
+        rows.addView(settingsCard)
     }
 
     private fun addCustomFormat(value: CurrencyFormat, parent: LinearLayout, visible: Boolean) {
@@ -265,7 +262,7 @@ class SettingsActivity : Activity() {
         money.addView(note)
 
         currencyChoices = radios()
-        currencyChoices?.let { safeChoices ->
+        currencyChoices.let { safeChoices ->
             addRadio(
                 safeChoices,
                 "US Dollar",
@@ -303,7 +300,7 @@ class SettingsActivity : Activity() {
 
             safeChoices.setOnCheckedChangeListener { group, _ ->
                 val selected = selectedIndex(group)
-                customFormat?.visibility = if (selected == 4) View.VISIBLE else View.GONE
+                customFormat.visibility = if (selected == 4) View.VISIBLE else View.GONE
                 refreshBudgetFormat(
                     if (selected < 4) {
                         presetFormat(selected)
@@ -313,12 +310,12 @@ class SettingsActivity : Activity() {
                 )
             }
 
-            rows?.addView(money)
+            rows.addView(money)
         }
     }
 
     private fun saveAll(): Boolean {
-        val currency = currencyChoices?.let { selectedIndex(it) } ?: 0
+        val currency = selectedIndex(currencyChoices)
         val format: CurrencyFormat
 
         if (currency < 4) {
@@ -326,7 +323,7 @@ class SettingsActivity : Activity() {
         } else {
             val preview = customFormatPreview()
             if (preview.decimalSeparator == preview.groupingSeparator && preview.groupingSeparator != '\u0000') {
-                grouping?.error = "Use a different separator than decimal."
+                grouping.error = "Use a different separator than decimal."
                 return false
             }
             format = preview
@@ -334,22 +331,16 @@ class SettingsActivity : Activity() {
 
         store.saveCurrencyFormat(format)
 
-        store.saveQuickCentsEntry(
-            priceChoices?.let { selectedIndex(it) == 1 } ?: false
-        )
-
-        store.saveQuickEntry(
-            flowChoices?.let { selectedIndex(it) == 1 } ?: false
-        )
+        store.saveQuickCentsEntry(selectedIndex(priceChoices) == 1)
+        store.saveQuickEntry(selectedIndex(flowChoices) == 1)
 
         val weightUnits = arrayOf("lb", "kg", "oz", "g")
-        val weightIndex = weightChoices?.let { max(0, selectedIndex(it)) } ?: 0
+        val weightIndex = max(0, selectedIndex(weightChoices))
         store.saveWeightUnit(weightUnits.getOrNull(weightIndex) ?: "lb")
 
-        val budgetFmt = budgetFormat ?: presetFormat(0)
         store.saveSettings(
-            parseDouble(taxInput?.text?.toString().orEmpty()),
-            parseBudget(budgetInput?.text?.toString().orEmpty(), budgetFmt)
+            parseDouble(taxInput.text.toString()),
+            parseBudget(budgetInput.text.toString(), budgetFormat)
         )
         return true
     }
@@ -362,31 +353,25 @@ class SettingsActivity : Activity() {
     }
 
     private fun customFormatPreview(): CurrencyFormat {
-        val sym = symbol?.text?.toString()?.trim().orEmpty()
-        val isAfter = symbolPosition?.let { selectedIndex(it) == 1 } ?: false
-        val dec = decimal?.text?.toString()?.trim()?.firstOrNull() ?: '.'
+        val sym = symbol.text.toString().trim()
+        val isAfter = selectedIndex(symbolPosition) == 1
+        val dec = decimal.text.toString().trim().firstOrNull() ?: '.'
 
-        val groupText = grouping?.text?.toString()?.trim().orEmpty()
+        // A literal space is a supported separator; only an empty field disables grouping.
+        val groupText = grouping.text.toString()
         val group = if (groupText.isEmpty()) '\u0000' else groupText.first()
 
-        val fracDigits = parseInt(digits?.text?.toString().orEmpty(), 2)
+        val fracDigits = parseInt(digits.text.toString(), 2)
 
         return CurrencyFormat(sym, isAfter, dec, group, fracDigits)
     }
 
     private fun refreshBudgetFormat(format: CurrencyFormat) {
-        val currentText = budgetInput?.text?.toString().orEmpty()
-        val oldFormat = budgetFormat ?: presetFormat(0)
-
-
-        if (currentText.isNotBlank()) {
-            rawBudgetValue = parseBudget(currentText, oldFormat)
-        }
-
+        val currentText = budgetInput.text.toString()
+        val amount = parseBudget(currentText, budgetFormat)
         budgetFormat = format
-
-        if (rawBudgetValue != 0.0 || currentText.isNotBlank()) {
-            budgetInput?.setText(formatBudget(rawBudgetValue, format))
+        if (currentText.isNotBlank()) {
+            budgetInput.setText(formatBudget(amount, format))
         }
     }
 
@@ -485,7 +470,7 @@ class SettingsActivity : Activity() {
     private fun section(title: String?) {
         val v = label(title, 16, text, true)
         v.setPadding(0, dp(24), 0, dp(7))
-        rows?.addView(v)
+        rows.addView(v)
     }
 
     private fun card(): LinearLayout {
@@ -524,7 +509,7 @@ class SettingsActivity : Activity() {
         return l
     }
 
-    private fun inputRow(title: String?, field: EditText?, marginTop: Int): LinearLayout {
+    private fun inputRow(title: String, field: EditText, marginTop: Int): LinearLayout {
         val row = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -532,9 +517,7 @@ class SettingsActivity : Activity() {
         val name = label(title, 14, text, true)
         name.setPadding(0, 0, dp(12), 0)
         row.addView(name, LinearLayout.LayoutParams(0, -2, 1f))
-        field?.let {
-            row.addView(it, LinearLayout.LayoutParams(dp(116), -2))
-        }
+        row.addView(field, LinearLayout.LayoutParams(dp(116), -2))
         val params = LinearLayout.LayoutParams(-1, -2).apply {
             topMargin = dp(marginTop)
         }
