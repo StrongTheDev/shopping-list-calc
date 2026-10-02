@@ -1,5 +1,6 @@
 plugins {
     id "com.android.application"
+    id 'org.jetbrains.kotlin.android'
 }
 
 android {
@@ -47,7 +48,29 @@ android {
             if (releaseStoreFile) {
                 signingConfig signingConfigs.release
             }
-            minifyEnabled false
+            // Remove unused application/library code and resources from release APKs.
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+        }
+        r8Smoke {
+            // Exercise release optimization without replacing an installed release.
+            initWith release
+            applicationIdSuffix '.r8test'
+            versionNameSuffix '-r8-test'
+            signingConfig signingConfigs.debug
+            matchingFallbacks = ['release']
         }
     }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    testOptions {
+        unitTests.includeAndroidResources = true
+    }
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.14.1'
 }
