@@ -123,6 +123,32 @@ To sign your own release, provide `SHOPPING_CALC_STORE_FILE`,
 `app/build/outputs/apk/release/app-release.apk`. Never commit signing material.
 Debug builds use the `.dev` package suffix and can coexist with the release app.
 
+### Optimized release testing
+
+Release builds enable R8 code optimization and resource shrinking using Android's
+standard optimized rules. Kotlin runtime code is bundled locally; unused code is
+removed at build time. No runtime library downloads are required.
+
+```bash
+./gradlew assembleRelease testDebugUnitTest testReleaseUnitTest lint
+./gradlew assembleR8Smoke
+```
+
+`app/build/outputs/apk/r8Smoke/app-r8Smoke.apk` uses the release optimization
+settings, a debug signing key, package suffix `.r8test`, and version suffix
+`-r8-test`. It installs separately from both the release and ordinary debug app;
+it does not access their saved data. It is for testing, not distribution.
+
+Robolectric tests run JVM classes, not the optimized APK's DEX. Before merging,
+test the R8 smoke APK on Android: launch both screens, edit/save/reopen settings,
+switch currencies with edited and cleared budgets, check custom symbol placement
+and blank/space grouping separators, try all four weight units and entry modes,
+and add/edit/save/load shopping lists. Close and reopen the app to verify data
+persists. A separate package does not prove an in-place upgrade of existing data.
+Keep the merge pending until device testing is complete. Retain release R8
+mapping files from `app/build/outputs/mapping/release/` with release artifacts
+for crash diagnosis; do not commit generated build output.
+
 ## F-Droid listing maintenance
 
 F-Droid listing text and images live in `fastlane/metadata/android/en-US/`:
