@@ -362,9 +362,12 @@ public class MainActivity extends Activity {
             }
         });
         includeDetails.setOnClickListener(v -> userChoiceIncludeDetails[0] = includeDetails.isChecked());
+        LinearLayout customTitle = column();
+        customTitle.addView(label("Save current list", 16, text, true));
+        customTitle.addView(label("Save your current list. Tick the box to also keep prices, quantities and weight mode.", 9, muted, false));
+        customTitle.setPadding(48,24,0,0);
         AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("Save current list")
-                .setMessage("Save item names from your current list.")
+                .setCustomTitle(customTitle)
                 .setView(wrap)
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Save", null)
@@ -399,7 +402,9 @@ public class MainActivity extends Activity {
     private void confirmOverwriteSavedList(String name, boolean saveDetails) {
         new AlertDialog.Builder(this)
                 .setTitle("Replace saved list?")
-                .setMessage("Your current item names will replace \"" + name + "\". This does not change your current list.")
+                .setMessage((saveDetails
+                        ? "Your current item names, prices and quantities will replace \""
+                        : "Your current item names will replace \"") + name + "\". This does not change your current list.")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("Replace", (dialog, which) -> {
                     ArrayList<ShoppingList> shoppingLists = store.readSavedShoppingLists();
@@ -412,7 +417,9 @@ public class MainActivity extends Activity {
     private void confirmLoadSavedList(ShoppingList selected) {
         new AlertDialog.Builder(this)
                 .setTitle("Use \"" + selected.name + "\"")
-                .setMessage("Choose how its item names should affect your current list.")
+                .setMessage(selected.hasDetails
+                        ? "Choose how its items, with their prices and quantities, should affect your current list."
+                        : "Choose how its item names should affect your current list.")
                 .setNegativeButton("Cancel", null)
                 .setNeutralButton("Add to current", (dialog, which) -> addSavedListToCurrent(selected))
                 .setPositiveButton("Replace current", (dialog, which) -> replaceCurrentWithSavedList(selected))
